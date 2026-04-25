@@ -278,9 +278,8 @@ h1 { font-size: 21px; font-weight: 500; letter-spacing: -0.02em; }
   padding: 7px 11px; border-radius: 7px;
   box-shadow: 0 3px 14px rgba(0,0,0,0.2);
   max-width: 210px; white-space: normal;
-  opacity: 0; transition: opacity 0.13s;
+  display: none;
 }
-.hint-tip.visible { opacity: 1; }
 </style>
 </head>
 <body>
@@ -1364,22 +1363,28 @@ let hintTimer = null;
 
 function showHint(e, text) {
   clearTimeout(hintTimer);
-  hintEl.textContent = text;
-  positionHint(e);
-  hintTimer = setTimeout(() => hintEl.classList.add("visible"), 400);
+  hintTimer = setTimeout(() => {
+    hintEl.textContent = text;
+    hintEl.style.display = "block";
+    positionHint(e);
+  }, 500);
 }
 function moveHint(e) {
-  if (hintEl.classList.contains("visible")) positionHint(e);
+  if (hintEl.style.display === "block") positionHint(e);
 }
 function hideHint() {
   clearTimeout(hintTimer);
-  hintEl.classList.remove("visible");
+  hintEl.style.display = "none";
 }
 function positionHint(e) {
-  const x = e.clientX + 14, y = e.clientY - 10;
-  const r = hintEl.getBoundingClientRect();
-  hintEl.style.left = Math.min(x, window.innerWidth - r.width - 12) + "px";
-  hintEl.style.top  = Math.max(8, y - r.height) + "px";
+  hintEl.style.left = "0px";
+  hintEl.style.top = "0px";
+  const w = hintEl.offsetWidth, h = hintEl.offsetHeight;
+  let x = e.clientX + 14, y = e.clientY - h - 8;
+  if (x + w > window.innerWidth - 8) x = e.clientX - w - 10;
+  if (y < 8) y = e.clientY + 18;
+  hintEl.style.left = x + "px";
+  hintEl.style.top  = y + "px";
 }
 
 // Attach hints to elements by selector + hint text
