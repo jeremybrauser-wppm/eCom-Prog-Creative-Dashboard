@@ -15,6 +15,44 @@
   --label-w: 148px;
 }
 body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; }
+
+/* PASSWORD GATE */
+#pw-gate {
+  position: fixed; inset: 0; background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9999;
+}
+#pw-gate.hidden { display: none; }
+.pw-box {
+  background: var(--surface); border: 0.5px solid var(--border-md);
+  border-radius: 14px; padding: 36px 40px; width: 100%; max-width: 360px;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.07);
+  display: flex; flex-direction: column; gap: 20px;
+}
+.pw-wordmark { display: flex; align-items: center; gap: 9px; }
+.pw-logo { width: 26px; height: 26px; background: #1a1917; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+.pw-logo svg { width: 14px; height: 14px; fill: #fff; }
+.pw-brand { font-size: 11px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-2); }
+.pw-heading { font-size: 18px; font-weight: 500; letter-spacing: -0.02em; margin-top: -4px; }
+.pw-sub { font-size: 13px; color: var(--text-2); margin-top: -12px; }
+.pw-field { display: flex; flex-direction: column; gap: 6px; }
+.pw-field label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-3); }
+.pw-field input {
+  font-family: 'DM Mono', monospace; font-size: 13px;
+  padding: 9px 12px; border: 0.5px solid var(--border-md);
+  border-radius: 7px; background: var(--surface2); color: var(--text);
+  outline: none; transition: border-color 0.15s; width: 100%;
+}
+.pw-field input:focus { border-color: #1a1917; }
+.pw-field input.error { border-color: #E24B4A; background: #fdf2f2; }
+.pw-error { font-family: 'DM Mono', monospace; font-size: 11px; color: #993C1D; display: none; }
+.pw-error.visible { display: block; }
+.pw-submit {
+  font-family: 'DM Mono', monospace; font-size: 12px; padding: 10px;
+  background: #1a1917; color: #fff; border: none; border-radius: 7px;
+  cursor: pointer; transition: opacity 0.15s; letter-spacing: 0.02em;
+}
+.pw-submit:hover { opacity: 0.85; }
 .shell { max-width: 1180px; margin: 0 auto; padding: 28px 24px 80px; }
 
 /* HEADER */
@@ -213,7 +251,27 @@ h1 { font-size: 21px; font-weight: 500; letter-spacing: -0.02em; }
 </style>
 </head>
 <body>
-<div class="shell">
+<!-- Password gate -->
+<div id="pw-gate">
+  <div class="pw-box">
+    <div class="pw-wordmark">
+      <div class="pw-logo"><svg viewBox="0 0 20 20"><path d="M2 14h16l-4-8H6L2 14z"/></svg></div>
+      <div class="pw-brand">adidas / eCom Prog</div>
+    </div>
+    <div>
+      <div class="pw-heading">BU coverage dashboard</div>
+      <div class="pw-sub">Internal tool — team access only</div>
+    </div>
+    <div class="pw-field">
+      <label for="pw-input">Password</label>
+      <input type="password" id="pw-input" placeholder="Enter password" autocomplete="current-password">
+    </div>
+    <div class="pw-error" id="pw-error">Incorrect password. Check with your team lead.</div>
+    <button class="pw-submit" onclick="checkPassword()">Enter →</button>
+  </div>
+</div>
+
+<div class="shell" id="main-shell" style="display:none">
 
   <div class="header">
     <div>
@@ -1090,7 +1148,38 @@ function showTT(e,r,ps,pbi){
 function moveTT(e){tooltip.style.left=(e.clientX+14)+"px";tooltip.style.top=(e.clientY-12)+"px";}
 function hideTT(){tooltip.style.display="none";}
 
-// ── Reset ──────────────────────────────────────────────────────
+// ── Password gate ──────────────────────────────────────────────
+const PW_KEY = "adidas_ecom_auth_v1";
+const CORRECT = "ecomprog2026";
+
+function checkPassword() {
+  const val = document.getElementById("pw-input").value;
+  const input = document.getElementById("pw-input");
+  const err = document.getElementById("pw-error");
+  if (val === CORRECT) {
+    sessionStorage.setItem(PW_KEY, "1");
+    document.getElementById("pw-gate").classList.add("hidden");
+    document.getElementById("main-shell").style.display = "block";
+    input.classList.remove("error");
+    err.classList.remove("visible");
+  } else {
+    input.classList.add("error");
+    err.classList.add("visible");
+    input.focus();
+  }
+}
+
+// Allow Enter key to submit
+document.getElementById("pw-input").addEventListener("keydown", e => {
+  if (e.key === "Enter") checkPassword();
+});
+
+// Auto-unlock if already authenticated this session
+if (sessionStorage.getItem(PW_KEY) === "1") {
+  document.getElementById("pw-gate").classList.add("hidden");
+  document.getElementById("main-shell").style.display = "block";
+}
+
 function resetView(){
   document.getElementById("upload-view").style.display="block";
   document.getElementById("gantt-wrap").style.display="none";
