@@ -16,43 +16,6 @@
 }
 body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; }
 
-/* PASSWORD GATE */
-#pw-gate {
-  position: fixed; inset: 0; background: var(--bg);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 9999;
-}
-#pw-gate.hidden { display: none; }
-.pw-box {
-  background: var(--surface); border: 0.5px solid var(--border-md);
-  border-radius: 14px; padding: 36px 40px; width: 100%; max-width: 360px;
-  box-shadow: 0 4px 32px rgba(0,0,0,0.07);
-  display: flex; flex-direction: column; gap: 20px;
-}
-.pw-wordmark { display: flex; align-items: center; gap: 9px; }
-.pw-logo { width: 26px; height: 26px; background: #1a1917; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
-.pw-logo svg { width: 14px; height: 14px; fill: #fff; }
-.pw-brand { font-size: 11px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-2); }
-.pw-heading { font-size: 18px; font-weight: 500; letter-spacing: -0.02em; margin-top: -4px; }
-.pw-sub { font-size: 13px; color: var(--text-2); }
-.pw-field { display: flex; flex-direction: column; gap: 6px; }
-.pw-field label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-3); }
-.pw-field input {
-  font-family: 'DM Mono', monospace; font-size: 13px;
-  padding: 9px 12px; border: 0.5px solid var(--border-md);
-  border-radius: 7px; background: var(--surface2); color: var(--text);
-  outline: none; transition: border-color 0.15s; width: 100%;
-}
-.pw-field input:focus { border-color: #1a1917; }
-.pw-field input.error { border-color: #E24B4A; background: #fdf2f2; }
-.pw-error { font-family: 'DM Mono', monospace; font-size: 11px; color: #993C1D; display: none; }
-.pw-error.visible { display: block; }
-.pw-submit {
-  font-family: 'DM Mono', monospace; font-size: 12px; padding: 10px;
-  background: #1a1917; color: #fff; border: none; border-radius: 7px;
-  cursor: pointer; transition: opacity 0.15s; letter-spacing: 0.02em;
-}
-.pw-submit:hover { opacity: 0.85; }
 .shell { max-width: 1180px; margin: 0 auto; padding: 28px 24px 80px; }
 
 /* HEADER */
@@ -116,6 +79,64 @@ h1 { font-size: 21px; font-weight: 500; letter-spacing: -0.02em; }
 .hide-toggle:hover { color: var(--text); }
 @media (max-width: 1000px) { #alerts-area { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 650px)  { #alerts-area { grid-template-columns: repeat(2, 1fr); } }
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .shell { padding: 16px 12px 60px; }
+  .upload-grid { grid-template-columns: 1fr; }
+  .recon-cols { grid-template-columns: 1fr; }
+  .toolbar { gap: 6px; }
+  #alerts-area { grid-template-columns: repeat(2, 1fr); }
+  .support-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+  h1 { font-size: 17px; }
+}
+@media (max-width: 600px) {
+  .shell { padding: 12px 10px 60px; }
+  h1 { font-size: 15px; }
+  .seg-group { flex-wrap: wrap; }
+  .phase-group { flex-wrap: wrap; }
+  #alerts-area { grid-template-columns: 1fr 1fr; }
+  .toolbar { flex-direction: column; align-items: flex-start; }
+  .spacer { display: none; }
+}
+
+/* DETAIL PANEL */
+#detail-panel {
+  position: fixed; right: 0; top: 0; bottom: 0; width: 340px;
+  background: var(--surface); border-left: 0.5px solid var(--border-md);
+  z-index: 500; transform: translateX(100%); transition: transform 0.22s ease;
+  overflow-y: auto; box-shadow: -4px 0 24px rgba(0,0,0,0.08);
+  display: flex; flex-direction: column;
+}
+#detail-panel.open { transform: translateX(0); }
+.dp-header { padding: 18px 18px 14px; border-bottom: 0.5px solid var(--border); position: sticky; top: 0; background: var(--surface); z-index: 1; }
+.dp-close { position: absolute; right: 14px; top: 14px; background: none; border: none; font-size: 18px; cursor: pointer; color: var(--text-3); line-height: 1; }
+.dp-close:hover { color: var(--text); }
+.dp-bu-dot { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+.dp-name { font-size: 14px; font-weight: 500; line-height: 1.35; margin-top: 6px; padding-right: 24px; }
+.dp-body { padding: 16px 18px; display: flex; flex-direction: column; gap: 14px; }
+.dp-section-title { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-3); margin-bottom: 7px; }
+.dp-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; padding: 4px 0; border-bottom: 0.5px solid var(--border); }
+.dp-row:last-child { border-bottom: none; }
+.dp-label { color: var(--text-2); }
+.dp-val { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text); text-align: right; }
+.dp-badge { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 4px; font-family: 'DM Mono', monospace; }
+.dp-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; }
+.dp-tag { font-family: 'DM Mono', monospace; font-size: 10px; padding: 3px 9px; border-radius: 4px; background: var(--surface2); border: 0.5px solid var(--border-md); color: var(--text-2); cursor: pointer; transition: all 0.12s; }
+.dp-tag:hover { background: #1a1917; color: #fff; border-color: #1a1917; }
+#detail-overlay { position: fixed; inset: 0; z-index: 499; display: none; }
+#detail-overlay.open { display: block; }
+
+/* CLICKABLE STYLES */
+.alert-card.clickable { cursor: pointer; transition: box-shadow 0.15s, border-color 0.15s; }
+.alert-card.clickable:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+.alert-card.active-filter { outline: 2px solid #1a1917; outline-offset: 1px; }
+.support-card { cursor: pointer; transition: box-shadow 0.15s; }
+.support-card:hover { box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+.support-card.active-filter { outline: 2px solid #1a1917; outline-offset: 1px; }
+.c-bar { cursor: pointer; }
+.chip.clickable-chip { cursor: pointer; }
+.chip.clickable-chip:hover { opacity: 0.8; filter: brightness(0.95); }
 
 /* MOST SUPPORTED */
 #supported-section { margin-bottom: 20px; background: var(--surface); border: 0.5px solid var(--border-md); border-radius: 10px; padding: 16px 18px; }
@@ -251,27 +272,7 @@ h1 { font-size: 21px; font-weight: 500; letter-spacing: -0.02em; }
 </style>
 </head>
 <body>
-<!-- Password gate -->
-<div id="pw-gate">
-  <div class="pw-box">
-    <div class="pw-wordmark">
-      <div class="pw-logo"><svg viewBox="0 0 20 20"><path d="M2 14h16l-4-8H6L2 14z"/></svg></div>
-      <div class="pw-brand">adidas / eCom Prog</div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:6px;">
-      <div class="pw-heading">BU coverage dashboard</div>
-      <div class="pw-sub">Internal tool — team access only</div>
-    </div>
-    <div class="pw-field">
-      <label for="pw-input">Password</label>
-      <input type="password" id="pw-input" placeholder="Enter password" autocomplete="current-password">
-    </div>
-    <div class="pw-error" id="pw-error">Incorrect password. Check with your team lead.</div>
-    <button class="pw-submit" onclick="checkPassword()">Enter →</button>
-  </div>
-</div>
-
-<div class="shell" id="main-shell" style="display:none">
+<div class="shell">
 
   <div class="header">
     <div>
@@ -368,6 +369,7 @@ h1 { font-size: 21px; font-weight: 500; letter-spacing: -0.02em; }
         <button class="seg-btn" onclick="adjustZoom(1)" style="padding:5px 10px;font-size:13px;border:0.5px solid var(--border-md);border-radius:6px;background:var(--surface);cursor:pointer;">+</button>
       </div>
       <span class="result-pill" id="result-pill"></span>
+      <span id="filter-indicator" style="display:none;font-family:'DM Mono',monospace;font-size:11px;color:#185FA5;background:#deeef9;border:0.5px solid #378ADD;padding:4px 10px;border-radius:5px;cursor:pointer;" onclick="clearAllFilters()">✕ clear filter</span>
     </div>
 
     <div class="gantt-outer">
@@ -383,6 +385,20 @@ h1 { font-size: 21px; font-weight: 500; letter-spacing: -0.02em; }
   </div>
 </div>
 
+<!-- Detail panel overlay -->
+<div id="detail-overlay"></div>
+
+<!-- Campaign detail panel -->
+<div id="detail-panel">
+  <div class="dp-header">
+    <button class="dp-close" onclick="closeDetail()">×</button>
+    <div id="dp-bu-label" style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text-3);letter-spacing:0.05em;text-transform:uppercase;"></div>
+    <div class="dp-name" id="dp-name"></div>
+  </div>
+  <div class="dp-body" id="dp-body"></div>
+</div>
+
+<!-- Tooltip -->
 <div id="tooltip">
   <div class="tt-name" id="tt-name"></div>
   <div class="tt-row" id="tt-dates"></div>
@@ -752,7 +768,21 @@ function togglePhase(btn) {
   renderAll();
 }
 function getFiltered() {
-  return allRows.filter(r=>visiblePhases.has(r["Campaign Phase"])&&marketMatch(r,activeMarket)).map(r=>({...r,"_bu":canonicalBU(r["Business Unit"])}));
+  let rows = allRows.filter(r => visiblePhases.has(r["Campaign Phase"]) && marketMatch(r, activeMarket))
+    .map(r => ({...r, "_bu": canonicalBU(r["Business Unit"])}));
+  if (activeAlertFilter && alertFilteredNames.size) {
+    rows = rows.filter(r => alertFilteredNames.has(r["Name"].replace(/^\d{8}\s+/, "").trim()));
+  }
+  if (activeBUFilter) {
+    rows = rows.filter(r => r["_bu"] === activeBUFilter);
+  }
+  if (activeCategoryFilter) {
+    rows = rows.filter(r => r["Creative Category"] === activeCategoryFilter);
+  }
+  if (activeFormatFilter) {
+    rows = rows.filter(r => String(r["Format"] || "").split(",").map(f => f.trim()).includes(activeFormatFilter));
+  }
+  return rows;
 }
 function adjustZoom(dir) {
   const next=zoomLevel+dir;
@@ -828,10 +858,14 @@ function renderAlerts(filtered) {
   }
 
   const shortName = r => esc(r["Name"].replace(/^\d{8}\s/,"").slice(0,26));
+  const turnOffNames = turnOff.map(r => r["Name"].replace(/^\d{8}\s+/,"").trim());
+  const reviewNames  = review.map(r => r["Name"].replace(/^\d{8}\s+/,"").trim());
+  const endingNames  = endingSoon.map(r => r["Name"].replace(/^\d{8}\s+/,"").trim());
+  const launchNames  = comingUp.map(r => r["Name"].replace(/^\d{8}\s+/,"").trim());
 
   // 1. Turn off
-  area.innerHTML+=`<div class="alert-card red">
-    <div class="alert-header"><span class="alert-title">Turn off</span>${turnOff.length?`<button class="hide-toggle" id="turn-off-toggle" onclick="toggleTurnOff()">${turnOffCollapsed?"show":"hide"}</button>`:""}</div>
+  area.innerHTML+=`<div class="alert-card red clickable" data-filter="turnoff" onclick="setAlertFilter('turnoff',${JSON.stringify(turnOffNames)})">
+    <div class="alert-header"><span class="alert-title">Turn off</span>${turnOff.length?`<button class="hide-toggle" id="turn-off-toggle" onclick="event.stopPropagation();toggleTurnOff()">${turnOffCollapsed?"show":"hide"}</button>`:""}</div>
     <div class="alert-count">${turnOff.length}</div>
     <div class="alert-chips${turnOffCollapsed?" collapsed":""}" id="turn-off-chips">${turnOff.length
       ?turnOff.map(r=>{const e=toDate(r["End Date"]);const reason=e&&e<TODAY?`ended ${daysBetween(e,TODAY)}d ago`:"phase complete";return`<span class="chip chip-red">${shortName(r)} · ${reason}</span>`;}).join("")
@@ -839,16 +873,16 @@ function renderAlerts(filtered) {
   </div>`;
 
   // 2. Needs review
-  area.innerHTML+=`<div class="alert-card purple">
-    <div class="alert-header"><span class="alert-title">Needs review</span>${review.length?`<button class="hide-toggle" id="review-toggle" onclick="toggleReview()">${reviewCollapsed?"show":"hide"}</button>`:""}</div>
+  area.innerHTML+=`<div class="alert-card purple clickable" data-filter="review" onclick="setAlertFilter('review',${JSON.stringify(reviewNames)})">
+    <div class="alert-header"><span class="alert-title">Needs review</span>${review.length?`<button class="hide-toggle" id="review-toggle" onclick="event.stopPropagation();toggleReview()">${reviewCollapsed?"show":"hide"}</button>`:""}</div>
     <div class="alert-count">${review.length}</div>
     <div class="alert-chips${reviewCollapsed?" collapsed":""}" id="review-chips">${review.length
-      ?review.map(r=>{const e=toDate(r["End Date"]);const l=toDate(r["Launch Date"]);const running=l?daysBetween(l,TODAY):"?";const past=e?daysBetween(e,TODAY):"?";return`<span class="chip chip-purple" title="${esc(r["Name"])}">${shortName(r)} · ${running}d running · ${past}d past end</span>`;}).join("")
+      ?review.map(r=>{const e=toDate(r["End Date"]);const l=toDate(r["Launch Date"]);const running=l?daysBetween(l,TODAY):"?";const past=e?daysBetween(e,TODAY):"?";return`<span class="chip chip-purple">${shortName(r)} · ${running}d running · ${past}d past end</span>`;}).join("")
       :`<span class="alert-empty">No campaigns need review</span>`}</div>
   </div>`;
 
   // 3. Ending this week
-  area.innerHTML+=`<div class="alert-card orange">
+  area.innerHTML+=`<div class="alert-card orange clickable" data-filter="ending" onclick="setAlertFilter('ending',${JSON.stringify(endingNames)})">
     <div class="alert-header"><span class="alert-title">Ending this week</span></div>
     <div class="alert-count">${endingSoon.length}</div>
     <div class="alert-chips">${endingSoon.length
@@ -857,7 +891,7 @@ function renderAlerts(filtered) {
   </div>`;
 
   // 4. Launching this week
-  area.innerHTML+=`<div class="alert-card blue">
+  area.innerHTML+=`<div class="alert-card blue clickable" data-filter="launching" onclick="setAlertFilter('launching',${JSON.stringify(launchNames)})">
     <div class="alert-header"><span class="alert-title">Launching this week</span></div>
     <div class="alert-count">${comingUp.length}</div>
     <div class="alert-chips">${comingUp.length
@@ -873,6 +907,12 @@ function renderAlerts(filtered) {
       ?gapRisk.map(({bu,daysUntil,gapDays})=>`<span class="chip chip-amber">${esc(bu)} · dark in ${daysUntil}d (${gapDays}d gap)</span>`).join("")
       :`<span class="alert-empty">No BU gaps in 30 days</span>`}</div>
   </div>`;
+
+  // Re-apply active filter highlight
+  if (activeAlertFilter) {
+    const card = document.querySelector(`.alert-card[data-filter="${activeAlertFilter}"]`);
+    if (card) card.classList.add("active-filter");
+  }
 }
 
 // ── Most supported BUs ─────────────────────────────────────────
@@ -886,7 +926,8 @@ function renderSupportedBUs() {
   const maxVal=Math.max(...buData.map(d=>d.total),1);
   document.getElementById("support-grid").innerHTML=buData.map(({bu,total,matched,campaigns})=>{
     const color=buColorMap[bu]||"#888",pct2=(total/maxVal*100).toFixed(1),label=buDisplayLabel(bu);
-    return `<div class="support-card">
+    const isActive = activeBUFilter === bu;
+    return `<div class="support-card${isActive?" active-filter":""}" data-bu="${esc(bu)}" onclick="setBUFilter('${esc(bu)}')" title="Click to filter Gantt to ${esc(label)}">
       <div class="support-bu" style="color:${color}" title="${esc(label)}">${esc(label)}</div>
       <div class="support-bar-wrap"><div class="support-bar" style="width:${pct2}%;background:${color}"></div></div>
       <div class="support-stats"><span>${fmtMetric(activeMetric,total)}</span><span>${matched}/${campaigns}</span></div>
@@ -957,6 +998,9 @@ function renderAll() {
   renderAlerts(filtered);
   if(pbiLoaded) { renderSupportedBUs(); renderRecon(); }
   document.getElementById("result-pill").textContent=`${filtered.length} campaigns`;
+  const hasFilter = activeAlertFilter || activeBUFilter || activeCategoryFilter || activeFormatFilter;
+  const fi = document.getElementById("filter-indicator");
+  if (fi) fi.style.display = hasFilter ? "inline-block" : "none";
 
   const gridPcts=[];
   renderAxis(gridPcts);
@@ -1099,6 +1143,7 @@ function renderAll() {
       cbar.addEventListener("mouseenter",e=>showTT(e,r,ps,pbi));
       cbar.addEventListener("mousemove",moveTT);
       cbar.addEventListener("mouseleave",hideTT);
+      cbar.addEventListener("click",()=>{ hideTT(); openDetail(r,ps,pbi); });
       ctrack.appendChild(cbar);
       camTrackDiv.appendChild(ctrack);
     });
@@ -1148,37 +1193,137 @@ function showTT(e,r,ps,pbi){
 function moveTT(e){tooltip.style.left=(e.clientX+14)+"px";tooltip.style.top=(e.clientY-12)+"px";}
 function hideTT(){tooltip.style.display="none";}
 
-// ── Password gate ──────────────────────────────────────────────
-const PW_KEY = "adidas_ecom_auth_v1";
-const CORRECT = "ecomprog2026";
+function clearAllFilters() {
+  activeAlertFilter = null; alertFilteredNames = new Set();
+  activeBUFilter = null;
+  activeCategoryFilter = null;
+  activeFormatFilter = null;
+  document.querySelectorAll(".alert-card.clickable,.support-card").forEach(c => c.classList.remove("active-filter"));
+  renderAll();
+}
 
-function checkPassword() {
-  const val = document.getElementById("pw-input").value;
-  const input = document.getElementById("pw-input");
-  const err = document.getElementById("pw-error");
-  if (val === CORRECT) {
-    sessionStorage.setItem(PW_KEY, "1");
-    document.getElementById("pw-gate").classList.add("hidden");
-    document.getElementById("main-shell").style.display = "block";
-    input.classList.remove("error");
-    err.classList.remove("visible");
+// ── Alert card filtering ───────────────────────────────────────
+let activeAlertFilter = null;
+let alertFilteredNames = new Set();
+
+function setAlertFilter(type, names) {
+  if (activeAlertFilter === type) {
+    activeAlertFilter = null; alertFilteredNames = new Set();
   } else {
-    input.classList.add("error");
-    err.classList.add("visible");
-    input.focus();
+    activeAlertFilter = type; alertFilteredNames = new Set(names);
   }
+  document.querySelectorAll(".alert-card.clickable").forEach(c => c.classList.remove("active-filter"));
+  if (activeAlertFilter) {
+    const card = document.querySelector(`.alert-card[data-filter="${activeAlertFilter}"]`);
+    if (card) card.classList.add("active-filter");
+  }
+  renderAll();
 }
 
-// Allow Enter key to submit
-document.getElementById("pw-input").addEventListener("keydown", e => {
-  if (e.key === "Enter") checkPassword();
-});
+// ── BU card filtering ──────────────────────────────────────────
+let activeBUFilter = null;
 
-// Auto-unlock if already authenticated this session
-if (sessionStorage.getItem(PW_KEY) === "1") {
-  document.getElementById("pw-gate").classList.add("hidden");
-  document.getElementById("main-shell").style.display = "block";
+function setBUFilter(bu) {
+  activeBUFilter = activeBUFilter === bu ? null : bu;
+  document.querySelectorAll(".support-card").forEach(c => c.classList.remove("active-filter"));
+  if (activeBUFilter) {
+    const card = document.querySelector(`.support-card[data-bu="${CSS.escape(activeBUFilter)}"]`);
+    if (card) card.classList.add("active-filter");
+  }
+  renderAll();
 }
+
+// ── Category / Format quick filters ───────────────────────────
+let activeCategoryFilter = null;
+let activeFormatFilter = null;
+
+function filterByCategory(cat) {
+  activeCategoryFilter = activeCategoryFilter === cat ? null : cat;
+  closeDetail();
+  renderAll();
+}
+function filterByFormat(fmt) {
+  activeFormatFilter = activeFormatFilter === fmt ? null : fmt;
+  closeDetail();
+  renderAll();
+}
+
+// ── Campaign detail panel ──────────────────────────────────────
+function openDetail(r, ps, pbi) {
+  const panel = document.getElementById("detail-panel");
+  const overlay = document.getElementById("detail-overlay");
+  const buColor = buColorMap[r["_bu"] || canonicalBU(r["Business Unit"])] || "#888";
+  const name = r["Name"].replace(/^\d{8}\s/, "");
+  const bu = buDisplayLabel(r["_bu"] || canonicalBU(r["Business Unit"]));
+
+  document.getElementById("dp-bu-label").innerHTML =
+    `<span class="dp-bu-dot" style="background:${buColor}"></span>${esc(bu)}`;
+  document.getElementById("dp-name").textContent = name;
+
+  const ed = effectiveEndDate(r);
+  const lsColor = LS_COLORS[r["Launch Status"]] || "var(--text-3)";
+  const phaseStyle = ps || PHASE_STYLE[r["Campaign Phase"]] || PHASE_STYLE.Complete;
+
+  let html = `<div>
+    <div class="dp-section-title">Campaign details</div>
+    <div class="dp-row"><span class="dp-label">Phase</span>
+      <span class="dp-badge" style="background:${phaseStyle.bbg};color:${phaseStyle.btxt}">${esc(r["Campaign Phase"] || "—")}</span></div>
+    <div class="dp-row"><span class="dp-label">Launch status</span>
+      <span style="color:${lsColor};font-family:'DM Mono',monospace;font-size:11px">${esc(r["Launch Status"] || "—")}</span></div>
+    <div class="dp-row"><span class="dp-label">Launch date</span><span class="dp-val">${fmtDate(r["Launch Date"])}</span></div>
+    <div class="dp-row"><span class="dp-label">End date</span><span class="dp-val">${ed ? fmtDate(ed) : "Open-ended"}</span></div>
+    <div class="dp-row"><span class="dp-label">Market</span><span class="dp-val">${esc(r["Market"] || "—")}</span></div>
+    <div class="dp-row"><span class="dp-label">Launch type</span><span class="dp-val">${esc(r["Launch Type"] || "—")}</span></div>
+  </div>`;
+
+  if (r["Creative Category"] || r["Format"]) {
+    html += `<div><div class="dp-section-title">Creative</div>`;
+    if (r["Creative Category"]) {
+      html += `<div class="dp-row"><span class="dp-label">Category</span>
+        <span class="dp-tag" style="cursor:pointer" onclick="filterByCategory('${esc(r["Creative Category"])}')">${esc(r["Creative Category"])}</span></div>`;
+    }
+    if (r["Format"]) {
+      const formats = String(r["Format"]).split(",").map(f => f.trim()).filter(Boolean);
+      html += `<div class="dp-row" style="flex-direction:column;align-items:flex-start;gap:6px">
+        <span class="dp-label">Formats</span>
+        <div class="dp-tags">${formats.map(f =>
+          `<span class="dp-tag" onclick="filterByFormat('${esc(f)}')" title="Filter Gantt by ${esc(f)}">${esc(f)}</span>`
+        ).join("")}</div></div>`;
+    }
+    html += `</div>`;
+  }
+
+  if (pbi) {
+    html += `<div><div class="dp-section-title">PBI performance</div>
+      ${PBI_METRICS.map(m => `<div class="dp-row"><span class="dp-label">${m.label}</span><span class="dp-val">${m.fmt(pbi[m.key] || 0)}</span></div>`).join("")}
+    </div>`;
+  }
+
+  if (needsReview(r)) {
+    const e = toDate(r["End Date"]);
+    const daysOver = e ? daysBetween(e, TODAY) : "?";
+    html += `<div style="background:#EEEDFE;border-radius:8px;padding:12px 14px;margin-top:4px">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;color:#3C3489;font-weight:500;margin-bottom:4px">⚠ Needs review</div>
+      <div style="font-size:12px;color:#534AB7">Active past end date by ${daysOver} days. Check if this should be extended or turned off.</div>
+    </div>`;
+  }
+
+  document.getElementById("dp-body").innerHTML = html;
+  panel.classList.add("open");
+  overlay.classList.add("open");
+}
+
+function closeDetail() {
+  document.getElementById("detail-panel").classList.remove("open");
+  document.getElementById("detail-overlay").classList.remove("open");
+}
+document.getElementById("detail-overlay").addEventListener("click", closeDetail);
+
+
+
+
+
+
 
 function resetView(){
   document.getElementById("upload-view").style.display="block";
@@ -1187,6 +1332,9 @@ function resetView(){
   document.getElementById("recon-section").style.display="none";
   reconSelectedWrike=null; reconSelectedPBI=null;
   allRows=[];pbiMap={};wrikeLoaded=false;pbiLoaded=false;expandedBUs.clear();
+  activeAlertFilter=null; alertFilteredNames=new Set();
+  activeBUFilter=null; activeCategoryFilter=null; activeFormatFilter=null;
+  closeDetail();
   document.querySelectorAll(".drop-zone").forEach(z=>z.classList.remove("loaded"));
   document.getElementById("drop-wrike").querySelector(".drop-title").textContent="Wrike export";
   document.getElementById("drop-pbi").querySelector(".drop-title").textContent="PBI performance export";
