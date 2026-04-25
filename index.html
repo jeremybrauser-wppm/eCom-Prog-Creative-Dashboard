@@ -330,24 +330,32 @@ h1 { font-size: 21px; font-weight: 500; letter-spacing: -0.02em; }
     <div id="alerts-area"></div>
 
     <div id="supported-section" style="display:none">
-      <div class="section-hdr">
+      <div class="section-hdr" style="cursor:pointer;" onclick="toggleSupportedSection()">
         <span class="section-title">Most supported BUs</span>
-        <div class="metric-pills" id="metric-pills"></div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="metric-pills" id="metric-pills" onclick="event.stopPropagation()"></div>
+          <span id="supported-chevron" style="font-size:13px;color:var(--text-3);transition:transform 0.18s;display:inline-block;transform:rotate(90deg)">›</span>
+        </div>
       </div>
-      <div class="support-grid" id="support-grid"></div>
+      <div id="support-grid-wrap">
+        <div class="support-grid" id="support-grid"></div>
+      </div>
     </div>
 
     <div id="recon-section" style="display:none">
-      <div class="section-hdr">
+      <div class="section-hdr" style="cursor:pointer;" onclick="toggleReconSection()">
         <span class="section-title">PBI matching — unlinked</span>
         <div style="display:flex;align-items:center;gap:12px;">
-          <label style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text-3);cursor:pointer;display:flex;align-items:center;gap:5px;">
-            <input type="checkbox" id="show-excluded-toggle" onchange="renderRecon()" style="cursor:pointer;"> show excluded
-          </label>
-          <span id="recon-summary" style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text-3)"></span>
+          <div onclick="event.stopPropagation()" style="display:flex;align-items:center;gap:12px;">
+            <label style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text-3);cursor:pointer;display:flex;align-items:center;gap:5px;">
+              <input type="checkbox" id="show-excluded-toggle" onchange="renderRecon()" style="cursor:pointer;"> show excluded
+            </label>
+            <span id="recon-summary" style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text-3)"></span>
+          </div>
+          <span id="recon-chevron" style="font-size:13px;color:var(--text-3);transition:transform 0.18s;display:inline-block;">›</span>
         </div>
       </div>
-      <div class="recon-cols">
+      <div id="recon-body" style="display:none">
         <div>
           <div class="recon-col-title">All Wrike campaigns</div>
           <input type="text" id="recon-wrike-search" placeholder="Search…" oninput="renderRecon()" style="width:100%;font-family:'DM Mono',monospace;font-size:11px;padding:5px 10px;border:0.5px solid var(--border-md);border-radius:6px;background:var(--surface2);color:var(--text);margin-bottom:6px;outline:none;">
@@ -364,7 +372,8 @@ h1 { font-size: 21px; font-weight: 500; letter-spacing: -0.02em; }
         <div class="recon-pairs-title">Manual links</div>
         <div id="recon-pairs-list"></div>
       </div>
-    </div>
+    </div><!-- end recon-body -->
+    </div><!-- end recon-section -->
     <div class="toolbar">
       <div class="seg-group">
         <button class="seg-btn active" data-market="All" onclick="setMarket(this)">All</button>
@@ -449,7 +458,7 @@ let zoomLevel=0;
 const ZOOM_NAMES  = ["Quarters","Months","Weeks","Days"];
 const ZOOM_WIDTHS = [700,1400,4200,18000];
 let activeMetric="Impressions";
-let turnOffCollapsed=false, reviewCollapsed=false;
+let turnOffCollapsed=true, reviewCollapsed=true;
 let wrikeLoaded=false, pbiLoaded=false;
 let manualLinks = {}; // wrikeName -> pbiTitle
 const LINKS_STORAGE_KEY = "adidas_ecom_pbi_links_v1";
@@ -767,6 +776,22 @@ function unpair(wrikeName) {
   saveManualLinks();
   renderRecon();
   renderAll();
+}
+
+// ── Section collapse toggles ───────────────────────────────────
+let supportedCollapsed = false;
+let reconCollapsed = true;
+
+function toggleSupportedSection() {
+  supportedCollapsed = !supportedCollapsed;
+  document.getElementById("support-grid-wrap").style.display = supportedCollapsed ? "none" : "block";
+  document.getElementById("supported-chevron").style.transform = supportedCollapsed ? "rotate(0deg)" : "rotate(90deg)";
+}
+
+function toggleReconSection() {
+  reconCollapsed = !reconCollapsed;
+  document.getElementById("recon-body").style.display = reconCollapsed ? "none" : "block";
+  document.getElementById("recon-chevron").style.transform = reconCollapsed ? "rotate(0deg)" : "rotate(90deg)";
 }
 
 // ── Controls ───────────────────────────────────────────────────
