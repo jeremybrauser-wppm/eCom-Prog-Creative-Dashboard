@@ -771,7 +771,10 @@ function getFiltered() {
   let rows = allRows.filter(r => visiblePhases.has(r["Campaign Phase"]) && marketMatch(r, activeMarket))
     .map(r => ({...r, "_bu": canonicalBU(r["Business Unit"])}));
   if (activeAlertFilter && alertFilteredNames.size) {
-    rows = rows.filter(r => alertFilteredNames.has(r["Name"].replace(/^\d{8}\s+/, "").trim()));
+    rows = rows.filter(r => {
+      const cleaned = r["Name"].replace(/^\d{8}\s+/, "").trim();
+      return alertFilteredNames.has(cleaned) || alertFilteredNames.has(r["Name"]);
+    });
   }
   if (activeBUFilter) {
     rows = rows.filter(r => r["_bu"] === activeBUFilter);
@@ -858,10 +861,11 @@ function renderAlerts(filtered) {
   }
 
   const shortName = r => esc(r["Name"].replace(/^\d{8}\s/,"").slice(0,26));
-  const turnOffNames = turnOff.map(r => r["Name"].replace(/^\d{8}\s+/,"").trim());
-  const reviewNames  = review.map(r => r["Name"].replace(/^\d{8}\s+/,"").trim());
-  const endingNames  = endingSoon.map(r => r["Name"].replace(/^\d{8}\s+/,"").trim());
-  const launchNames  = comingUp.map(r => r["Name"].replace(/^\d{8}\s+/,"").trim());
+  const cleanName = r => r["Name"].replace(/^\d{8}\s+/,"").trim();
+  const turnOffNames = turnOff.map(cleanName);
+  const reviewNames  = review.map(cleanName);
+  const endingNames  = endingSoon.map(cleanName);
+  const launchNames  = comingUp.map(cleanName);
 
   // 1. Turn off
   area.innerHTML+=`<div class="alert-card red clickable" data-filter="turnoff" onclick="setAlertFilter('turnoff',${JSON.stringify(turnOffNames)})">
@@ -1211,6 +1215,13 @@ function setAlertFilter(type, names) {
     activeAlertFilter = null; alertFilteredNames = new Set();
   } else {
     activeAlertFilter = type; alertFilteredNames = new Set(names);
+    // Auto-expand all BUs that contain flagged campaigns
+    allRows.forEach(r => {
+      const cleaned = r["Name"].replace(/^\d{8}\s+/, "").trim();
+      if (alertFilteredNames.has(cleaned)) {
+        expandedBUs.add(canonicalBU(r["Business Unit"]));
+      }
+    });
   }
   document.querySelectorAll(".alert-card.clickable").forEach(c => c.classList.remove("active-filter"));
   if (activeAlertFilter) {
@@ -1225,6 +1236,10 @@ let activeBUFilter = null;
 
 function setBUFilter(bu) {
   activeBUFilter = activeBUFilter === bu ? null : bu;
+  if (activeBUFilter) {
+    // Auto-expand the selected BU
+    expandedBUs.add(activeBUFilter);
+  }
   document.querySelectorAll(".support-card").forEach(c => c.classList.remove("active-filter"));
   if (activeBUFilter) {
     const card = document.querySelector(`.support-card[data-bu="${CSS.escape(activeBUFilter)}"]`);
