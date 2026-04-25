@@ -269,9 +269,24 @@ h1 { font-size: 21px; font-weight: 500; letter-spacing: -0.02em; }
 .tt-m-val { font-size: 11px; font-weight: 500; }
 .tt-badges { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 6px; }
 .tt-badge { font-size: 10px; padding: 1px 7px; border-radius: 3px; }
+
+/* UI HINT TOOLTIPS */
+.hint-tip {
+  position: fixed; z-index: 1001; pointer-events: none;
+  background: #1a1917; color: rgba(255,255,255,0.92);
+  font-family: 'DM Mono', monospace; font-size: 11px; line-height: 1.55;
+  padding: 7px 11px; border-radius: 7px;
+  box-shadow: 0 3px 14px rgba(0,0,0,0.2);
+  max-width: 210px; white-space: normal;
+  opacity: 0; transition: opacity 0.13s;
+}
+.hint-tip.visible { opacity: 1; }
 </style>
 </head>
 <body>
+<!-- UI hint tooltip -->
+<div id="hint-tip" class="hint-tip"></div>
+
 <div class="shell">
 
   <div class="header">
@@ -1006,6 +1021,9 @@ function renderAll() {
   const fi = document.getElementById("filter-indicator");
   if (fi) fi.style.display = hasFilter ? "inline-block" : "none";
 
+  // Attach hover hints to all newly rendered dynamic elements
+  requestAnimationFrame(attachDynamicHints);
+
   const gridPcts=[];
   renderAxis(gridPcts);
 
@@ -1158,18 +1176,18 @@ function renderAll() {
 
   // Legend
   document.getElementById("legend").innerHTML=`
-    <div class="legend-item"><div class="legend-swatch" style="background:#c6dfa6;border:1px solid #5a8f1e"></div>Active</div>
-    <div class="legend-item"><div class="legend-swatch" style="background:#f9ddb0;border:1px solid #b06c10"></div>Pending</div>
-    <div class="legend-item"><div class="legend-swatch" style="background:#dddbd3;border:1px solid #7d7c76"></div>Complete</div>
+    <div class="legend-item" data-hint="Green bars — campaign is currently live and running"><div class="legend-swatch" style="background:#c6dfa6;border:1px solid #5a8f1e"></div>Active</div>
+    <div class="legend-item" data-hint="Yellow bars — campaign is planned but not yet live"><div class="legend-swatch" style="background:#f9ddb0;border:1px solid #b06c10"></div>Pending</div>
+    <div class="legend-item" data-hint="Grey bars — campaign has finished running"><div class="legend-swatch" style="background:#dddbd3;border:1px solid #7d7c76"></div>Complete</div>
     <div class="legend-divider"></div>
-    <div class="legend-item"><div class="legend-swatch" style="background:rgba(226,75,74,0.08);border:1px dashed rgba(226,75,74,0.3)"></div>Gap</div>
-    <div class="legend-item"><div style="width:18px;height:8px;border-radius:2px;border:2px solid #7F77DD;background:#EEEDFE"></div>Needs review</div>
-    <div class="legend-item"><div class="legend-swatch" style="background:#dddbd3;border-left:0.5px solid #7d7c76;border-top:0.5px solid #7d7c76;border-bottom:0.5px solid #7d7c76;border-right:2px dashed rgba(0,0,0,0.2);border-radius:3px 0 0 3px"></div>No hard end</div>
+    <div class="legend-item" data-hint="Red shaded zone — a period with no active campaign coverage for this BU. Check alert cards for upcoming gaps."><div class="legend-swatch" style="background:rgba(226,75,74,0.08);border:1px dashed rgba(226,75,74,0.3)"></div>Gap</div>
+    <div class="legend-item" data-hint="Purple outline — this Active campaign has passed its scheduled end date. It may need to be extended or turned off."><div style="width:18px;height:8px;border-radius:2px;border:2px solid #7F77DD;background:#EEEDFE"></div>Needs review</div>
+    <div class="legend-item" data-hint="Dashed right edge — this campaign has no hard end date set (Launch Type is not Hard End). It will run until manually stopped."><div class="legend-swatch" style="background:#dddbd3;border-left:0.5px solid #7d7c76;border-top:0.5px solid #7d7c76;border-bottom:0.5px solid #7d7c76;border-right:2px dashed rgba(0,0,0,0.2);border-radius:3px 0 0 3px"></div>No hard end</div>
     <div class="legend-divider"></div>
-    <div class="legend-item"><div class="ldot" style="background:#2f5a0a"></div>Active</div>
-    <div class="legend-item"><div class="ldot" style="background:#4840a8"></div>Trafficking</div>
-    <div class="legend-item"><div class="ldot" style="background:#164f8a"></div>Ready</div>
-    <div class="legend-item"><div class="ldot" style="background:#882e10"></div>Backlog</div>
+    <div class="legend-item" data-hint="Launch status dot — campaign is live and serving"><div class="ldot" style="background:#2f5a0a"></div>Active</div>
+    <div class="legend-item" data-hint="Launch status dot — campaign is being set up in ad server, not yet live"><div class="ldot" style="background:#4840a8"></div>Trafficking</div>
+    <div class="legend-item" data-hint="Launch status dot — campaign is built and approved, ready to go live"><div class="ldot" style="background:#164f8a"></div>Ready</div>
+    <div class="legend-item" data-hint="Launch status dot — campaign is planned but not yet in production"><div class="ldot" style="background:#882e10"></div>Backlog</div>
     <div style="flex:1"></div>
     <div class="legend-item" style="color:var(--text-3);font-size:10px">click a BU to expand · drag to scroll</div>`;
 }
@@ -1340,6 +1358,140 @@ document.getElementById("detail-overlay").addEventListener("click", closeDetail)
 
 
 
+// ── UI Hint Tooltips ───────────────────────────────────────────
+const hintEl = document.getElementById("hint-tip");
+let hintTimer = null;
+
+function showHint(e, text) {
+  clearTimeout(hintTimer);
+  hintEl.textContent = text;
+  positionHint(e);
+  hintTimer = setTimeout(() => hintEl.classList.add("visible"), 400);
+}
+function moveHint(e) {
+  if (hintEl.classList.contains("visible")) positionHint(e);
+}
+function hideHint() {
+  clearTimeout(hintTimer);
+  hintEl.classList.remove("visible");
+}
+function positionHint(e) {
+  const x = e.clientX + 14, y = e.clientY - 10;
+  const r = hintEl.getBoundingClientRect();
+  hintEl.style.left = Math.min(x, window.innerWidth - r.width - 12) + "px";
+  hintEl.style.top  = Math.max(8, y - r.height) + "px";
+}
+
+// Attach hints to elements by selector + hint text
+const HINTS = [
+  // Header
+  { sel: "#reset-btn",            tip: "Go back to import a new Wrike or PBI file" },
+  // Toolbar
+  { sel: "[data-market='All']",   tip: "Show campaigns across all markets" },
+  { sel: "[data-market='US']",    tip: "Filter to US market campaigns only" },
+  { sel: "[data-market='CA']",    tip: "Filter to Canada market campaigns only" },
+  { sel: "[data-phase='Active']", tip: "Toggle Active campaigns on/off in the Gantt" },
+  { sel: "[data-phase='Pending']",tip: "Toggle Pending campaigns on/off in the Gantt" },
+  { sel: "[data-phase='Complete']",tip:"Toggle Completed campaigns on/off in the Gantt" },
+  { sel: "#filter-indicator",     tip: "A filter is active — click to clear all filters and show all campaigns" },
+  // Zoom
+  { sel: "button[onclick='adjustZoom(-1)']", tip: "Zoom out — see a broader date range (Quarters → Months → Weeks → Days)" },
+  { sel: "button[onclick='adjustZoom(1)']",  tip: "Zoom in — see more date detail (Quarters → Months → Weeks → Days)" },
+  // Upload
+  { sel: "#drop-wrike", tip: "Drop your Wrike eCom Prog Creative Template .xlsx export here, or click to browse" },
+  { sel: "#drop-pbi",   tip: "Optional: drop a PBI performance export to overlay spend, ROAS, and impressions data on the Gantt" },
+  { sel: ".launch-btn", tip: "Open the dashboard with the uploaded file(s)" },
+  // Legend
+  { sel: ".legend",     tip: "Key for Gantt bar colours, gap zones, and launch status dots" },
+];
+
+function attachHints() {
+  HINTS.forEach(({ sel, tip }) => {
+    document.querySelectorAll(sel).forEach(el => {
+      el.addEventListener("mouseenter", e => showHint(e, tip));
+      el.addEventListener("mousemove",  e => moveHint(e));
+      el.addEventListener("mouseleave", hideHint);
+    });
+  });
+}
+// Run once DOM is ready, and re-run after renderAll for dynamic elements
+attachHints();
+
+// Dynamic hints — called from renderAll after Gantt is built
+function attachDynamicHints() {
+  // Alert cards
+  const alertHints = {
+    turnoff:   "These campaigns are past their end date or marked Complete but still active. Click to highlight them in the Gantt.",
+    review:    "Active campaigns that are running past their scheduled end date with no hard stop. Click to highlight in the Gantt.",
+    ending:    "Active campaigns ending within the next 7 days. Click to highlight them in the Gantt.",
+    launching: "Campaigns in Ready or Trafficking status launching within 7 days. Click to highlight in the Gantt.",
+  };
+  document.querySelectorAll(".alert-card[data-filter]").forEach(card => {
+    const tip = alertHints[card.dataset.filter];
+    if (!tip) return;
+    card.addEventListener("mouseenter", e => showHint(e, tip));
+    card.addEventListener("mousemove",  e => moveHint(e));
+    card.addEventListener("mouseleave", hideHint);
+  });
+
+  // Gap risk card
+  const gapCard = document.querySelector(".alert-card.amber");
+  if (gapCard) {
+    gapCard.addEventListener("mouseenter", e => showHint(e, "BUs with no active coverage gap coming up in the next 30 days. Check these early to avoid dark periods."));
+    gapCard.addEventListener("mousemove",  e => moveHint(e));
+    gapCard.addEventListener("mouseleave", hideHint);
+  }
+
+  // BU support cards
+  document.querySelectorAll(".support-card[data-bu]").forEach(card => {
+    const bu = card.dataset.bu;
+    card.addEventListener("mouseenter", e => showHint(e, `Click to filter the Gantt to ${bu} campaigns and expand the BU row`));
+    card.addEventListener("mousemove",  e => moveHint(e));
+    card.addEventListener("mouseleave", hideHint);
+  });
+
+  // Metric pills
+  document.querySelectorAll(".mpill").forEach(pill => {
+    pill.addEventListener("mouseenter", e => showHint(e, `Switch the BU support bars to show ${pill.textContent} from PBI data`));
+    pill.addEventListener("mousemove",  e => moveHint(e));
+    pill.addEventListener("mouseleave", hideHint);
+  });
+
+  // BU label rows (expand/collapse)
+  document.querySelectorAll(".bu-label-row").forEach(row => {
+    row.addEventListener("mouseenter", e => showHint(e, "Click to expand or collapse this BU and see individual campaign bars"));
+    row.addEventListener("mousemove",  e => moveHint(e));
+    row.addEventListener("mouseleave", hideHint);
+  });
+
+  // Campaign bars
+  document.querySelectorAll(".c-bar").forEach(bar => {
+    bar.addEventListener("mouseenter", e => showHint(e, "Click to open campaign details — dates, status, format, and PBI metrics"));
+    bar.addEventListener("mousemove",  e => moveHint(e));
+    // Don't override mouseleave — existing hideTT handles it; add hint hide too
+    bar.addEventListener("mouseleave", hideHint);
+  });
+
+  // Density / BU summary track rows
+  document.querySelectorAll(".bu-track-row").forEach(row => {
+    row.addEventListener("mouseenter", e => showHint(e, "Click to expand and see individual campaigns. Red zones indicate coverage gaps."));
+    row.addEventListener("mousemove",  e => moveHint(e));
+    row.addEventListener("mouseleave", hideHint);
+  });
+
+  // Legend items
+  document.querySelectorAll(".legend-item[data-hint]").forEach(item => {
+    item.style.cursor = "default";
+    item.addEventListener("mouseenter", e => showHint(e, item.dataset.hint));
+    item.addEventListener("mousemove",  e => moveHint(e));
+    item.addEventListener("mouseleave", hideHint);
+  });
+
+  // Phase filter buttons (re-attach in case re-rendered)
+  attachHints();
+}
+
+// ── Reset ──────────────────────────────────────────────────────
 function resetView(){
   document.getElementById("upload-view").style.display="block";
   document.getElementById("gantt-wrap").style.display="none";
