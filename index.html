@@ -886,7 +886,7 @@ function renderAlerts(filtered) {
     <div class="alert-header"><span class="alert-title">Turn off</span>${turnOff.length?`<button class="hide-toggle" id="turn-off-toggle" onclick="event.stopPropagation();toggleTurnOff()">${turnOffCollapsed?"show":"hide"}</button>`:""}</div>
     <div class="alert-count">${turnOff.length}</div>
     <div class="alert-chips${turnOffCollapsed?" collapsed":""}" id="turn-off-chips">${turnOff.length
-      ?turnOff.map(r=>{const e=toDate(r["End Date"]);const reason=e&&e<TODAY?`ended ${daysBetween(e,TODAY)}d ago`:"phase complete";return`<span class="chip chip-red">${shortName(r)} · ${reason}</span>`;}).join("")
+      ?turnOff.map(r=>{const e=toDate(r["End Date"]);const reason=e&&e<TODAY?`ended ${daysBetween(e,TODAY)}d ago`:"phase complete";return`<span class="chip chip-red clickable-chip" onclick="event.stopPropagation();jumpToCampaign('${esc(cleanName(r))}')">${shortName(r)} · ${reason}</span>`;}).join("")
       :`<span class="alert-empty">Nothing to turn off</span>`}</div>
   </div>`;
 
@@ -895,7 +895,7 @@ function renderAlerts(filtered) {
     <div class="alert-header"><span class="alert-title">Needs review</span>${review.length?`<button class="hide-toggle" id="review-toggle" onclick="event.stopPropagation();toggleReview()">${reviewCollapsed?"show":"hide"}</button>`:""}</div>
     <div class="alert-count">${review.length}</div>
     <div class="alert-chips${reviewCollapsed?" collapsed":""}" id="review-chips">${review.length
-      ?review.map(r=>{const e=toDate(r["End Date"]);const l=toDate(r["Launch Date"]);const running=l?daysBetween(l,TODAY):"?";const past=e?daysBetween(e,TODAY):"?";return`<span class="chip chip-purple">${shortName(r)} · ${running}d running · ${past}d past end</span>`;}).join("")
+      ?review.map(r=>{const e=toDate(r["End Date"]);const l=toDate(r["Launch Date"]);const running=l?daysBetween(l,TODAY):"?";const past=e?daysBetween(e,TODAY):"?";return`<span class="chip chip-purple clickable-chip" onclick="event.stopPropagation();jumpToCampaign('${esc(cleanName(r))}')">${shortName(r)} · ${running}d running · ${past}d past end</span>`;}).join("")
       :`<span class="alert-empty">No campaigns need review</span>`}</div>
   </div>`;
 
@@ -904,7 +904,7 @@ function renderAlerts(filtered) {
     <div class="alert-header"><span class="alert-title">Ending this week</span></div>
     <div class="alert-count">${endingSoon.length}</div>
     <div class="alert-chips">${endingSoon.length
-      ?endingSoon.map(r=>{const d=daysBetween(TODAY,toDate(r["End Date"]));return`<span class="chip chip-orange">${shortName(r)} · ${d===0?"ends today":d+"d left"}</span>`;}).join("")
+      ?endingSoon.map(r=>{const d=daysBetween(TODAY,toDate(r["End Date"]));return`<span class="chip chip-orange clickable-chip" onclick="event.stopPropagation();jumpToCampaign('${esc(cleanName(r))}')">${shortName(r)} · ${d===0?"ends today":d+"d left"}</span>`;}).join("")
       :`<span class="alert-empty">Nothing ending this week</span>`}</div>
   </div>`;
 
@@ -913,7 +913,7 @@ function renderAlerts(filtered) {
     <div class="alert-header"><span class="alert-title">Launching this week</span></div>
     <div class="alert-count">${comingUp.length}</div>
     <div class="alert-chips">${comingUp.length
-      ?comingUp.map(r=>{const d=daysBetween(TODAY,toDate(r["Launch Date"]));return`<span class="chip chip-blue">${shortName(r)} · ${d===0?"today":"in "+d+"d"}</span>`;}).join("")
+      ?comingUp.map(r=>{const d=daysBetween(TODAY,toDate(r["Launch Date"]));return`<span class="chip chip-blue clickable-chip" onclick="event.stopPropagation();jumpToCampaign('${esc(cleanName(r))}')">${shortName(r)} · ${d===0?"today":"in "+d+"d"}</span>`;}).join("")
       :`<span class="alert-empty">Nothing launching this week</span>`}</div>
   </div>`;
 
@@ -1221,6 +1221,56 @@ function clearAllFilters() {
   activeFormatFilter = null;
   document.querySelectorAll(".alert-card.clickable,.support-card").forEach(c => c.classList.remove("active-filter"));
   renderAll();
+}
+
+// ── Jump to campaign from alert chip ──────────────────────────
+function jumpToCampaign(cleanedName) {
+  // Find the matching row in allRows
+  const row = allRows.find(r => r["Name"].replace(/^\d{8}\s+/,"").trim() === cleanedName);
+  if (!row) return;
+
+  // Expand its BU
+  const bu = canonicalBU(row["Business Unit"]);
+  expandedBUs.add(bu);
+
+  // Make sure it's visible (clear any conflicting filters)
+  if (activeBUFilter && activeBUFilter !== bu) activeBUFilter = null;
+
+  // Re-render so the BU is expanded and bar exists in DOM
+  renderAll();
+
+  // After render, find the bar by title match and scroll to it, then open panel
+  requestAnimationFrame(() => {
+    const name = row["Name"].replace(/^\d{8}\s/,"");
+    const bars = document.querySelectorAll(".c-bar");
+    let targetBar = null;
+    bars.forEach(bar => {
+      if (bar.title && bar.title.includes(name.slice(0, 20))) targetBar = bar;
+    });
+
+    // Scroll gantt to position of bar
+    if (targetBar) {
+      const scroll = document.getElementById("gantt-scroll");
+      const inner = document.getElementById("gantt-inner");
+      const barLeft = parseFloat(targetBar.style.left) / 100;
+      const targetScroll = barLeft * inner.scrollWidth - scroll.clientWidth / 2;
+      scroll.scrollLeft = Math.max(0, targetScroll);
+
+      // Flash highlight the bar briefly
+      targetBar.style.outline = "2px solid #1a1917";
+      targetBar.style.outlineOffset = "2px";
+      setTimeout(() => { targetBar.style.outline = ""; targetBar.style.outlineOffset = ""; }, 1800);
+    }
+
+    // Open detail panel
+    const ps = PHASE_STYLE[row["Campaign Phase"]] || PHASE_STYLE.Complete;
+    const pbi = pbiLoaded ? getPBI(row["Name"]) : null;
+    const rowWithBU = {...row, "_bu": bu};
+    openDetail(rowWithBU, ps, pbi);
+
+    // Scroll page up to gantt area
+    document.getElementById("gantt-wrap").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
 }
 
 // ── Alert card filtering ───────────────────────────────────────
